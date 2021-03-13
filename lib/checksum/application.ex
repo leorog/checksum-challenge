@@ -7,24 +7,16 @@ defmodule Checksum.Application do
 
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
       ChecksumWeb.Telemetry,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: Checksum.PubSub},
-      # Start the Endpoint (http/https)
-      ChecksumWeb.Endpoint
-      # Start a worker by calling: Checksum.Worker.start_link(arg)
-      # {Checksum.Worker, arg}
+      ChecksumWeb.Endpoint,
+      {Registry, keys: :unique, name: ChecksumRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: ChecksumStateSupervisor}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Checksum.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
   def config_change(changed, _new, removed) do
     ChecksumWeb.Endpoint.config_change(changed, removed)
     :ok
