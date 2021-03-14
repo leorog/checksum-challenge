@@ -1,9 +1,25 @@
 defmodule Checksum do
-  @moduledoc """
-  Checksum keeps the contexts that define your domain
-  and business logic.
+  alias Checksum.ChecksumAgent
+  alias Checksum.Logic
 
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
-  """
+  def process_command(params) do
+    checksum_id = Logic.checksum_id(params["id"])
+    DynamicSupervisor.start_child(ChecksumStateSupervisor, {ChecksumAgent, name: checksum_id})
+
+    case Logic.read_command(params["command"]) do
+      {:ok, :checksum} ->
+        checksum_id
+        |> ChecksumAgent.get
+        |> Logic.checksum
+
+      {:ok, {:add, number}} ->
+        ChecksumAgent.add(checksum_id, number)
+
+      {:ok, :clear} ->
+        ChecksumAgent.clear(checksum_id)
+
+      {:error, error} ->
+        error
+    end
+  end
 end

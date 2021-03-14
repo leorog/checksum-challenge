@@ -8,9 +8,6 @@ defmodule ChecksumWeb.Router do
   scope "/v1", ChecksumWeb do
     pipe_through :api
 
-    post "/number/:id/add", ChecksumWeb.ChecksumController, :add
-    get "/number/:id/checksum", ChecksumWeb.ChecksumController, :checksum
-    delete "/number/:id/clear", ChecksumWeb.ChecksumController, :clear
-    delete "/number/clear-all", ChecksumWeb.ChecksumController, :clear_all
+    post "/number", ChecksumController, :process_command
   end
 end

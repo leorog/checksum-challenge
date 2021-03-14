@@ -1,9 +1,28 @@
 defmodule Checksum.Logic do
   require Integer
 
-  def checksum_state_pid(id) do
-    {:via, Registry, {ChecksumRegistry, id}}
+  def read_command(<< "CS" >>) do
+    {:ok, :checksum}
   end
+
+  def read_command(<< "C" >>) do
+    {:ok, :clear}
+  end
+
+  def read_command(<< "A", number_str :: binary >>) do
+    only_digits = Regex.replace(~r/\D/, number_str, "")
+    case Integer.parse(only_digits) do
+      {number, _} -> {:ok, {:add, number}}
+      :error -> {:error, :not_a_number}
+    end
+  end
+
+  def read_command(_) do
+    {:error, :unknown_command}
+  end
+
+  def checksum_id(nil), do: {:via, Registry, {ChecksumRegistry, "default-checksum"}}
+  def checksum_id(id), do: {:via, Registry, {ChecksumRegistry, id}}
 
   def checksum(numbers), do: checksum(Enum.with_index(numbers, 1), 0, 0)
 
