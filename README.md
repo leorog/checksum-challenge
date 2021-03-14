@@ -36,17 +36,3 @@ It expects a json with the format above:
 
 > `id` is optional and if present creates a new checksum sequence apart from the default one.
 
-### Why Agent instead of Genserver?
-For this simple problem there is no need to add an Genserver, an Agent is suited for pure state and thats what we need.
-
-### Why the client is in bash?
-Because there is no requirements denying it and the code is simpler, shorter and faster to develop
-
-### Why only integrated test?
-Since the logic is simple I see no need to add aditional tests to it. The integrated test `Checksum.ChecksumControllerTest` covers everything and also ensures that things are correclty connected
-
-### Why concurrent checksum sequences
-The scope didn't ask for it but since I'm expending my free time doing this exercise I wanted to include this complexity to make things more fun.
-
-### Why use a Registry?
-Because process names must be an atom and since we are generating dinamic names based on `id` field it could reach the VM limit of 1,048,576 atoms.

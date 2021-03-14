@@ -8,3 +8,6 @@ run: release
 
 run-client:
 	client/push-commands.sh
+
+test:
+	@(cd server; mix deps.get; mix test)

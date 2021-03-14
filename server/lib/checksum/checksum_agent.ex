@@ -13,7 +13,7 @@ defmodule Checksum.ChecksumAgent do
   end
 
   def start_link(name) do
-    Agent.start_link(fn -> :queue.new end, name: name)
+    Agent.start_link(fn -> :queue.new() end, name: name)
   end
 
   def add(agent, number) do
@@ -21,7 +21,7 @@ defmodule Checksum.ChecksumAgent do
   end
 
   def clear(agent) do
-    Agent.update(agent, fn _q -> :queue.new end, @timeout)
+    Agent.update(agent, fn _q -> :queue.new() end, @timeout)
   end
 
   def get(agent) do

@@ -31,20 +31,20 @@ defmodule Checksum.ChecksumControllerTest do
       conn = post(conn, "/v1/number", %{command: "Ab32a321", id: "dirty"})
       state_pid = Registry.whereis_name({ChecksumRegistry, "dirty"})
 
-      assert json_response(conn, 200) == %{"data" => "ok"}
+      assert json_response(conn, 200) == %{"result" => "ok"}
       assert [32321] = :queue.to_list(:sys.get_state(state_pid))
     end
 
     test "on not a number", %{conn: conn} do
       conn = post(conn, "/v1/number", %{command: "Absss"})
 
-      assert json_response(conn, 200) == %{"data" => "not_a_number"}
+      assert json_response(conn, 200) == %{"result" => "not_a_number"}
     end
 
     test "on empty", %{conn: conn} do
       conn = post(conn, "/v1/number", %{command: "A"})
 
-      assert json_response(conn, 200) == %{"data" => "not_a_number"}
+      assert json_response(conn, 200) == %{"result" => "not_a_number"}
     end
   end
 
@@ -55,40 +55,52 @@ defmodule Checksum.ChecksumControllerTest do
 
       assert [123] = :queue.to_list(:sys.get_state(state_pid))
       conn = post(conn, "/v1/number", %{command: "C"})
-      assert json_response(conn, 200) == %{"data" => "ok"}
+      assert json_response(conn, 200) == %{"result" => "ok"}
       assert [] = :queue.to_list(:sys.get_state(state_pid))
     end
   end
 
   describe "checksum" do
     test "without id it produce checksum of default sequence", %{conn: conn} do
-      DynamicSupervisor.start_child(ChecksumStateSupervisor, {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "default-checksum"}}})
+      DynamicSupervisor.start_child(
+        ChecksumStateSupervisor,
+        {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "default-checksum"}}}
+      )
+
       default = {:via, Registry, {ChecksumRegistry, "default-checksum"}}
       ChecksumAgent.add(default, 10)
       ChecksumAgent.add(default, 10)
 
       conn = post(conn, "/v1/number", %{command: "CS"})
 
-      assert json_response(conn, 200) == %{"data" => 0}
+      assert json_response(conn, 200) == %{"result" => 0}
     end
 
     test "with id it produce checksum of the given sequence", %{conn: conn} do
-      DynamicSupervisor.start_child(ChecksumStateSupervisor, {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "custom"}}})
+      DynamicSupervisor.start_child(
+        ChecksumStateSupervisor,
+        {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "custom"}}}
+      )
+
       custom = {:via, Registry, {ChecksumRegistry, "custom"}}
       ChecksumAgent.add(custom, 33)
       ChecksumAgent.add(custom, 33)
 
       conn = post(conn, "/v1/number", %{command: "CS", id: "custom"})
-      assert json_response(conn, 200) == %{"data" => 8}
+      assert json_response(conn, 200) == %{"result" => 8}
     end
 
     test "it should timeout at 15ms duration", %{conn: conn} do
-      DynamicSupervisor.start_child(ChecksumStateSupervisor, {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "timeout"}}})
+      DynamicSupervisor.start_child(
+        ChecksumStateSupervisor,
+        {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "timeout"}}}
+      )
+
       custom = {:via, Registry, {ChecksumRegistry, "timeout"}}
       for i <- 0..1_000_000, do: ChecksumAgent.add(custom, i)
 
       conn = post(conn, "/v1/number", %{command: "CS", id: "timeout"})
-      assert json_response(conn, 200) == %{"data" => 8}
+      assert json_response(conn, 200) == %{"result" => "timeout"}
     end
   end
 end

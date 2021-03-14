@@ -3,6 +3,6 @@ defmodule ChecksumWeb.ChecksumController do
 
   def process_command(conn, params) do
     result = Checksum.process_command(params)
-    json(conn, %{data: result})
+    json(conn, %{result: result})
   end
 end

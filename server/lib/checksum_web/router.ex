@@ -2,12 +2,12 @@ defmodule ChecksumWeb.Router do
   use ChecksumWeb, :router
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   scope "/v1", ChecksumWeb do
-    pipe_through :api
+    pipe_through(:api)
 
-    post "/number", ChecksumController, :process_command
+    post("/number", ChecksumController, :process_command)
   end
 end

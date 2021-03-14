@@ -1,16 +1,17 @@
 defmodule Checksum.Logic do
   require Integer
 
-  def read_command(<< "CS" >>) do
+  def read_command(<<"CS">>) do
     {:ok, :checksum}
   end
 
-  def read_command(<< "C" >>) do
+  def read_command(<<"C">>) do
     {:ok, :clear}
   end
 
-  def read_command(<< "A", number_str :: binary >>) do
+  def read_command(<<"A", number_str::binary>>) do
     only_digits = Regex.replace(~r/\D/, number_str, "")
+
     case Integer.parse(only_digits) do
       {number, _} -> {:ok, {:add, number}}
       :error -> {:error, :not_a_number}
@@ -27,7 +28,8 @@ defmodule Checksum.Logic do
   def checksum(numbers), do: checksum(Enum.with_index(numbers, 1), 0, 0)
 
   def checksum([], odd_result, even_result) do
-    checksum = rem((odd_result * 3) + even_result, 10)
+    checksum = rem(odd_result * 3 + even_result, 10)
+
     if checksum == 0,
       do: checksum,
       else: 10 - checksum
