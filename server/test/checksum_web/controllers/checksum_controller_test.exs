@@ -31,20 +31,20 @@ defmodule Checksum.ChecksumControllerTest do
       conn = post(conn, "/v1/number", %{command: "Ab32a321", id: "dirty"})
       state_pid = Registry.whereis_name({ChecksumRegistry, "dirty"})
 
-      assert text_response(conn, 200) =~ "ok"
+      assert json_response(conn, 200) == %{"data" => "ok"}
       assert [32321] = :queue.to_list(:sys.get_state(state_pid))
     end
 
     test "on not a number", %{conn: conn} do
       conn = post(conn, "/v1/number", %{command: "Absss"})
 
-      assert text_response(conn, 200) =~ "not_a_number"
+      assert json_response(conn, 200) == %{"data" => "not_a_number"}
     end
 
     test "on empty", %{conn: conn} do
       conn = post(conn, "/v1/number", %{command: "A"})
 
-      assert text_response(conn, 200) =~ "not_a_number"
+      assert json_response(conn, 200) == %{"data" => "not_a_number"}
     end
   end
 
@@ -55,7 +55,7 @@ defmodule Checksum.ChecksumControllerTest do
 
       assert [123] = :queue.to_list(:sys.get_state(state_pid))
       conn = post(conn, "/v1/number", %{command: "C"})
-      assert text_response(conn, 200) =~ "ok"
+      assert json_response(conn, 200) == %{"data" => "ok"}
       assert [] = :queue.to_list(:sys.get_state(state_pid))
     end
   end
@@ -69,7 +69,7 @@ defmodule Checksum.ChecksumControllerTest do
 
       conn = post(conn, "/v1/number", %{command: "CS"})
 
-      assert text_response(conn, 200) =~ "0"
+      assert json_response(conn, 200) == %{"data" => 0}
     end
 
     test "with id it produce checksum of the given sequence", %{conn: conn} do
@@ -79,7 +79,7 @@ defmodule Checksum.ChecksumControllerTest do
       ChecksumAgent.add(custom, 33)
 
       conn = post(conn, "/v1/number", %{command: "CS", id: "custom"})
-      assert text_response(conn, 200) =~ "8"
+      assert json_response(conn, 200) == %{"data" => 8}
     end
 
     test "it should timeout at 15ms duration", %{conn: conn} do
@@ -88,7 +88,7 @@ defmodule Checksum.ChecksumControllerTest do
       for i <- 0..1_000_000, do: ChecksumAgent.add(custom, i)
 
       conn = post(conn, "/v1/number", %{command: "CS", id: "timeout"})
-      assert text_response(conn, 200) =~ "8"
+      assert json_response(conn, 200) == %{"data" => 8}
     end
   end
 end
