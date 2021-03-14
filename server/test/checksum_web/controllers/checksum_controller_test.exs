@@ -81,5 +81,14 @@ defmodule Checksum.ChecksumControllerTest do
       conn = post(conn, "/v1/number", %{command: "CS", id: "custom"})
       assert text_response(conn, 200) =~ "8"
     end
+
+    test "it should timeout at 15ms duration", %{conn: conn} do
+      DynamicSupervisor.start_child(ChecksumStateSupervisor, {ChecksumAgent, name: {:via, Registry, {ChecksumRegistry, "timeout"}}})
+      custom = {:via, Registry, {ChecksumRegistry, "timeout"}}
+      for i <- 0..1_000_000, do: ChecksumAgent.add(custom, i)
+
+      conn = post(conn, "/v1/number", %{command: "CS", id: "timeout"})
+      assert text_response(conn, 200) =~ "8"
+    end
   end
 end
